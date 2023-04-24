@@ -1,6 +1,6 @@
 # Vulkan
 
-Offensive tool to create polymorphic FUD Powershell payloads
+ Offensive tool to obfuscate powershell payloads
 
 # Introduction
 
