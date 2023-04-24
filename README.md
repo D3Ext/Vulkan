@@ -10,7 +10,7 @@ This tools is able to obfuscate and modify powershell code using some known tech
 
 - All-in-one portable script
 - Undetectable against AVs
-- Pre-loaded Nishang payloads
+- Pre-loaded Nishang and PowerSploit payloads
 - Replace functions and variables with random names
 - Random combinations between uppercase and lowercase characters
 - Integers obfuscation
@@ -21,12 +21,13 @@ This tools is able to obfuscate and modify powershell code using some known tech
 
 # Payloads
 
-Some Nishang payloads are pre-loaded and you don't have to download the script, you can simply generate a FUD payload on the fly:
+Some payloads are pre-loaded and you don't have to download them from Github, you can simply generate a FUD payload on the fly:
 
 ```
 Invoke-PowerShellTcp.ps1
 Invoke-PowerShellUdp.ps1
 Invoke-PowerShellTcpOneLine.ps1
+Get-System.ps1
 Get-Information.ps1
 Get-WLAN-Keys.ps1
 Get-PassHashes.ps1
@@ -49,12 +50,27 @@ Clone the repo, move into it and then execute the `main.rb` script
 ```sh
 git clone https://github.com/D3Ext/Vulkan
 cd Vulkan
+gem install colorize httparty optparse
 ruby main.rb
 ```
 
 > Help panel
 ```
+╦  ╦┬ ┬┬  ┬┌─┌─┐┌┐┌
+╚╗╔╝│ ││  ├┴┐├─┤│││
+ ╚╝ └─┘┴─┘┴ ┴┴ ┴┘└┘
+    by D3Ext v0.1
 
+Usage: main.rb [options]
+Example: main.rb -f script.ps1 -o obfuscated.ps1
+
+    -f, --file FILE                  file to obfuscate
+    -o, --output DEST                path to write obfuscated script into
+    -i, --iterations NUMBER          times to obfuscate the script (default: 1)
+    -e, --extreme                    use best obfuscation techniques
+    -p, --payload PAYLOAD            choose payload to obfuscate
+    -l, --list                       show available pre-loaded payloads
+    -v, --verbose                    run verbosely
 ```
 
 > Custom powershell script
@@ -74,11 +90,11 @@ ruby main.rb -f script.ps1 -o output.ps1 -i 3
 
 # Demo
 
-<img src="">
+<img src="https://raw.githubusercontent.com/D3Ext/Vulkan/main/assets/pic1.png">
 
-<img src="">
+<img src="https://raw.githubusercontent.com/D3Ext/Vulkan/main/assets/pic2.png">
 
-<img src="">
+<img src="https://raw.githubusercontent.com/D3Ext/Vulkan/main/assets/pic3.png">
 
 # TODO
 
@@ -101,7 +117,7 @@ https://github.com/gh0x0st/Invoke-PSObfuscation/blob/main/layer-0-obfuscation.md
 
 This tool may have errors so if you help with that it would be a great support, new features and changes are also welcome. I'm just one guy with this project so I'll try to reply you as quickly as possible
 
-See [CONTRIBUTING.md]()
+See [CONTRIBUTING.md](https://github.com/D3Ext/Vulkan/blob/main/CONTRIBUTING.md)
 
 # Disclaimer
 
@@ -113,6 +129,6 @@ This project is licensed under MIT license
 
 Copyright © 2023, D3Ext
 
-<img src="">
+<a href="https://www.buymeacoffee.com/D3Ext" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 
