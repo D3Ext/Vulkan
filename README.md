@@ -9,14 +9,15 @@ This tools is able to obfuscate and modify powershell code using some known tech
 # Features
 
 - All-in-one portable script
-- Fully undetectable against AVs
+- Undetectable against AVs
 - Pre-loaded Nishang payloads
 - Replace functions and variables with random names
 - Random combinations between uppercase and lowercase characters
 - Integers obfuscation
-- Add backticks to strings
+- Add backticks
 - Edit and remove comments
 - Obfuscate strings with multiple techniques
+- Obfuscate integers
 
 # Payloads
 
@@ -25,16 +26,17 @@ Some Nishang payloads are pre-loaded and you don't have to download the script, 
 ```
 Invoke-PowerShellTcp.ps1
 Invoke-PowerShellUdp.ps1
-Invoke-ConPtyShell.ps1
+Invoke-PowerShellTcpOneLine.ps1
 Get-Information.ps1
 Get-WLAN-Keys.ps1
 Get-PassHashes.ps1
 Get-LSASecret.ps1
+Copy-VSS.ps1
+Check-VM.ps1
 Invoke-PortScan.ps1
 Invoke-PsUACme.ps1
 Remove-Update.ps1
 Add-Persistence.ps1
-Add-Exfiltration.ps1
 Download.ps1
 Parse_Keys.ps1
 Invoke-AmsiBypass.ps1
@@ -65,6 +67,11 @@ ruby main.rb -f script.ps1 -o output.ps1
 ruby main.rb -p Invoke-ReverseShellTcp -o output.ps1 --extreme
 ```
 
+> Custom amount of iterations
+```sh
+ruby main.rb -f script.ps1 -o output.ps1 -i 3
+```
+
 # Demo
 
 <img src="">
@@ -76,6 +83,7 @@ ruby main.rb -p Invoke-ReverseShellTcp -o output.ps1 --extreme
 # TODO
 
 - Custom payloads
+- More obfuscation avoiding errors
 
 # References
 
@@ -91,7 +99,7 @@ https://github.com/gh0x0st/Invoke-PSObfuscation/blob/main/layer-0-obfuscation.md
 
 # Contributing
 
-This tool may have errors so if you help with that it would be a great support, new features and changes are also welcome. I'm just one guy with this project so I'll try to reply you quickly
+This tool may have errors so if you help with that it would be a great support, new features and changes are also welcome. I'm just one guy with this project so I'll try to reply you as quickly as possible
 
 See [CONTRIBUTING.md]()
 
@@ -104,7 +112,6 @@ Use this project under your own responsability! The author is not responsible of
 This project is licensed under MIT license
 
 Copyright © 2023, D3Ext
-
 
 <img src="">
 
