@@ -95,10 +95,13 @@ ruby main.rb -f script.ps1 -o output.ps1 -i 3
 
 # Demo
 
+> Generate powershell Nishang TCP reverse shell
 <img src="https://raw.githubusercontent.com/D3Ext/Vulkan/main/assets/pic1.png">
 
+> One-liner obfuscated reverse shell example
 <img src="https://raw.githubusercontent.com/D3Ext/Vulkan/main/assets/pic2.png">
 
+> Shell established after executing above code
 <img src="https://raw.githubusercontent.com/D3Ext/Vulkan/main/assets/pic3.png">
 
 # TODO
