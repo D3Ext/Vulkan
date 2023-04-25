@@ -11,7 +11,6 @@
 require "colorize"
 require "httparty"
 require "optparse"
-require "pry"
 
 # This variable stores generated random strings to avoid collisions
 $rand_values = []
