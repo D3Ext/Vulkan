@@ -85,7 +85,7 @@ ruby main.rb -f script.ps1 -o output.ps1
 
 > Extreme obfuscation
 ```sh
-ruby main.rb -p Invoke-ReverseShellTcp -o output.ps1 --extreme
+ruby main.rb -p Invoke-PowerShellTcp -o output.ps1 --extreme
 ```
 
 > Custom amount of iterations
