@@ -1,0 +1,11 @@
+- Update README.md
+- Update main.rb
+- Update README.md
+- little changes
+- Update README.md
+- some changes
+- big changes
+- updates, big changes and more (WIP)
+- Create FUNDING.yml
+- first POC script and more (WIP)
+- Initial commit

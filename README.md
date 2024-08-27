@@ -1,62 +1,36 @@
 # Vulkan
 
- Offensive tool to obfuscate powershell payloads
+Offensive Powershell obfuscator
 
 # Introduction
 
-This tools is able to obfuscate and modify powershell code using some known techniques and creativity, however it may have some error so feel free to open an issue or a pull request. Most of the well known used Powershell payloads are detected by most of the AVs just by looking at the code. This tool makes all neccessary changes on the script to make it work as expected but without being detected by AVs. I would explain in deepth all the modifications and how obfuscation works but you can take a look at it [here](https://github.com/gh0x0st/Invoke-PSObfuscation/blob/main/layer-0-obfuscation.md), it's a great explanation from ***gh0x0st***, the creator of [Invoke-PSObfuscation](https://github.com/gh0x0st/Invoke-PSObfuscation) so all credits to him
+Vulkan is able to obfuscate powershell scripts in order to make them undetectable against antivirus solutions. To achieve so, Vulkan uses different techniques and tricks to manipulate powershell code (i.e. obfuscate variables, cmdlets, functions, etc). This tool is coded in Ruby and uses regular expressions to parse powershell code properly. Nishang payloads seem to work great after being obfuscated with this tool.
 
-***Have in mind that this tool isn't finished yet! That's why some powershell scripts may not work after being obfuscated***
+Warning: have in mind that this is not a professional tool and you may find errors
 
 # Features
 
 - All-in-one portable script
 - Undetectable against AVs
-- Pre-loaded Nishang and PowerSploit payloads
-- Replace functions and variables with random names
-- Random combinations between uppercase and lowercase characters
-- Integers obfuscation
-- Add backticks
-- Edit and remove comments
-- Obfuscate strings with multiple techniques
-- Obfuscate integers
+- Malleable obfuscation configuration via CLI parameters
+- Obfuscate variables
+- Obfuscate functions
+- Obfuscate cmdlets
+- Obfuscate namespace classes
+- Obfuscate comments
+- Obfuscate IP addresses
 
-# Payloads
-
-Some payloads are pre-loaded and you don't have to download them from Github, you can simply generate a FUD payload on the fly:
-
-```
-Payloads                    Categories          Descriptions
---------                    ----------          ------------
-Invoke-PowerShellTcp        Shells              Send a reverse shell via TCP to a port of an ip
-Invoke-PowerShellTcpOneLine Shells              Send a reverse shell via TCP to a port of an ip (simplified)
-Invoke-PowerShellUdp        Shells              Send a reverse shell via UDP to a port of an ip
-Get-System                  Privesc             Try to impersonate NT AUTHORITY/SYSTEM account
-Get-Information             Gather              Get some basic information about the system
-Get-WLAN-Keys               Gather              Display Wifi information and its stored credentials
-Get-PassHashes              Gather              Dump system credentials from registry hives
-Get-LSASecret               Gather              Extract LSA secrets from local computer
-Copy-VSS                    Gather              Copy SAM and SYSTEM to a directory
-Check-VM                    Gather              Check if system is a Virtual Machine (VM)
-Invoke-CredentialsPhish     Gather              Create a fake dialog box to ask for credentials
-Invoke-PortScan             Scan                Scan open ports of the given ip
-Invoke-PsUACme              Escalation          Execute command(s) bypassing UAC with high privileges
-Remove-Update               Escalation          Remove previous updates from system stealthily
-Add-Persistence             Utility             Execute a payload on every computer reboot persistently
-Download                    Utility             Download given file to user temp directory
-Parse_Keys                  Utility             Parse keys logged by Nishang keylogger
-Invoke-AmsiBypass           Bypassing           Bypass AMSI with a dynamic one-liner command
-```
+And much more
 
 # Usage
 
-Clone the repo, move into it and then execute the `main.rb` script
+Clone the repo, move into it and then execute the `vulkan.rb` script
 
 ```sh
 git clone https://github.com/D3Ext/Vulkan
 cd Vulkan
 gem install colorize httparty optparse
-ruby main.rb
+ruby vulkan.rb
 ```
 
 > Help panel
@@ -64,50 +38,49 @@ ruby main.rb
 ╦  ╦┬ ┬┬  ┬┌─┌─┐┌┐┌
 ╚╗╔╝│ ││  ├┴┐├─┤│││
  ╚╝ └─┘┴─┘┴ ┴┴ ┴┘└┘
-    by D3Ext v0.1
+    by D3Ext v0.2
 
-Usage: main.rb [options]
-Example: main.rb -f script.ps1 -o obfuscated.ps1
+Usage of Vulkan:
+  REQUIRED ARGUMENTS:
+    -f, --file string     source Powershell script to obfuscate
+    -o, --output string   store obfuscated script in a file
 
-    -f, --file FILE                  file to obfuscate
-    -o, --output DEST                path to write obfuscated script into
-    -i, --iterations NUMBER          times to obfuscate the script (default: 1)
-    -e, --extreme                    use best obfuscation techniques
-    -p, --payload PAYLOAD            choose payload to obfuscate
-    -l, --list                       show available pre-loaded payloads
-    -v, --verbose                    run verbosely
-```
+  OPTIONAL ARGUMENTS:
+    -a, --all       use all obfuscation techniques
+    -s, --safe      enable safe obfuscation mode to prevent the script from breaking (use almost all obfuscation techniques) (enabled by default)
+    --vars          enable variable obfuscation
+    --funcs         enable functions obfuscation
+    --cmdlets       enable cmdlets obfuscation
+    --namespaces    enable namespace classes obfuscation
+    --backticks     enable backticks obfuscation
+    --case          enable uppercase/lowercase obfuscation
+    --pipes         enable pipes and pipelines obfuscation
+    --comments      remove and obfuscate comments
+    --indentation   add random indentation
+    --ips           obfuscate IP adddresses by converting them to hex format
 
-> Custom powershell script
-```sh
-ruby main.rb -f script.ps1 -o output.ps1
-```
+  EXTRA:
+    -v, --verbose   enable verbose
+    -d, --debug     enable debug mode to check how obfuscation works
+    -h, --help      show help panel
+    --about         show information about how to use this tool
 
-> Extreme obfuscation
-```sh
-ruby main.rb -p Invoke-PowerShellTcp -o output.ps1 --extreme
-```
-
-> Custom amount of iterations
-```sh
-ruby main.rb -f script.ps1 -o output.ps1 -i 3
+Examples:
+  vulkan.rb -f script.ps1 -o output.ps1 --verbose
+  vulkan.rb -f script.ps1 -o output.ps1 --all
+  vulkan.rb -f script.ps1 -o output.ps1 --vars --cmdlets
 ```
 
 # Demo
 
-> Generate powershell Nishang TCP reverse shell
 <img src="https://raw.githubusercontent.com/D3Ext/Vulkan/main/assets/pic1.png">
 
-> One-liner obfuscated reverse shell example
 <img src="https://raw.githubusercontent.com/D3Ext/Vulkan/main/assets/pic2.png">
-
-> Shell established after executing above code
-<img src="https://raw.githubusercontent.com/D3Ext/Vulkan/main/assets/pic3.png">
 
 # TODO
 
 - Custom payloads
-- More obfuscation avoiding errors
+- More obfuscation
 
 # References
 
@@ -119,13 +92,13 @@ https://github.com/samratashok/nishang
 https://github.com/GetRektBoy724/BetterXencrypt
 https://github.com/gh0x0st/Invoke-PSObfuscation
 https://github.com/gh0x0st/Invoke-PSObfuscation/blob/main/layer-0-obfuscation.md
+https://github.com/klezVirus/chameleon
+https://github.com/CBHue/PyFuscation
 ```
 
 # Contributing
 
-This tool may have errors so if you help with that it would be a great support, new features and changes are also welcome. I'm just one guy with this project so I'll try to reply you as quickly as possible
-
-See [CONTRIBUTING.md](https://github.com/D3Ext/Vulkan/blob/main/CONTRIBUTING.md)
+This tool may contain errors so new features and changes are welcome. Feel free to open an issue or a PR
 
 # Disclaimer
 
@@ -135,8 +108,7 @@ Use this project under your own responsability! The author is not responsible of
 
 This project is licensed under MIT license
 
-Copyright © 2023, D3Ext
+Copyright © 2024, D3Ext
 
-<a href="https://www.buymeacoffee.com/D3Ext" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 
